@@ -9,7 +9,7 @@ A simple [Monolog](http://github.com/Seldaek/monolog) handler for [Fluent](http:
 
 ```php
 <?php
-use Nrk\Fluent\Monolog\FluentHandler;
+use Vnay92\Fluent\Monolog\FluentHandler;
 
 $log = new Monolog\Logger('debug.monolog');
 
