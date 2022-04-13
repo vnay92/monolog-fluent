@@ -9,13 +9,12 @@
  * file that was distributed with this source code.
  */
 
-namespace Nrk\Fluent\Monolog;
+namespace Vnay92\Fluent\Monolog;
 
 use Monolog\Logger;
 use Monolog\Handler\AbstractProcessingHandler;
+
 use Fluent\Logger\FluentLogger;
-use Fluent\Logger\ConsoleLogger;
-use Fluent\Logger\HttpLogger;
 
 /**
  * Simple Monolog handler for the Fluent event collector system.
@@ -29,65 +28,39 @@ class FluentHandler extends AbstractProcessingHandler
     protected $logger;
 
     /**
-     * Initializes a new Fluent handler and guesses the right protocol to use
-     * from the passed URI.
+     * Initialize Handler
      *
-     * @param string $fluentURI URI that identifies the fluentd instance.
+     * @param FluentLogger $logger
+     * @param bool|string $host
+     * @param int $port
+     * @param int $level
+     * @param bool $bubble
      */
-    public function __construct($fluentURI, $level = Logger::ERROR, $bubble = true)
-    {
+    public function __construct(
+        $logger = null,
+        $host   = FluentLogger::DEFAULT_ADDRESS,
+        $port   = FluentLogger::DEFAULT_LISTEN_PORT,
+        $level  = Logger::DEBUG,
+        $bubble = true
+    ) {
         parent::__construct($level, $bubble);
 
-        $this->parameters = parse_url($fluentURI);
+        if (is_null($logger)) {
+            $logger = new FluentLogger($host, $port);
+        }
+
+        var_dump($logger);
+
+        $this->logger = $logger;
     }
 
     /**
-     * Creates a new Fluent logger instances.
-     *
-     * @param Array $parameters Parameters used to initialize the underlying logger.
-     * @param string $tag Full tag name to identify the log in fluent.
+     * {@inheritDoc}
      */
-    protected function initializeLogger(Array $parameters, $tag)
+    public function write(array $record): void
     {
-        if (!isset($parameters['scheme'])) {
-            $parameters['scheme'] = 'http';
-        }
-
-        switch ($parameters['scheme']) {
-            case 'http':
-                $host = isset($parameters['host']) ? $parameters['host'] : '127.0.0.1';
-                $port = isset($parameters['port']) ? $parameters['port'] : HttpLogger::DEFAULT_HTTP_PORT;
-                $this->logger = new HttpLogger($tag, $host, $port);
-                break;
-
-            case 'tcp':
-            case 'fluent':
-                $host = isset($parameters['host']) ? $parameters['host'] : FluentLogger::DEFAULT_ADDRESS;
-                $port = isset($parameters['port']) ? $parameters['port'] : FluentLogger::DEFAULT_LISTEN_PORT;
-                $this->logger = new FluentLogger($tag, $host, $port);
-                break;
-
-            case 'php':
-                $handle = fopen("{$parameters['scheme']}://{$parameters['host']}", 'w');
-                $this->logger = new ConsoleLogger($tag, $handle);
-                break;
-
-            default:
-                throw new \RuntimeException("The specified protocol is not supported [$scheme]");
-        }
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    protected function write(array $record)
-    {
-        if (!isset($this->logger)) {
-            $this->initializeLogger($this->parameters, $record['channel']);
-        }
-
-        unset($record['formatted'], $record['datetime']);
-
-        $this->logger->post($record);
+        $record['level'] = Logger::getLevelName($record['level']);
+        $tag  = $record['channel'] . '.' . $record['message'];
+        $this->logger->post($tag, $record);
     }
 }
