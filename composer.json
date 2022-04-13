@@ -1,9 +1,9 @@
 {
-    "name": "nrk/monolog-fluent",
+    "name": "vnay92/monolog-fluent",
     "type": "library",
     "description": "A simple Monolog handler for Fluent",
     "keywords": ["fluent", "monolog", "log", "logging"],
-    "homepage": "http://github.com/nrk/monolog-fluent",
+    "homepage": "http://github.com/vnay92/monolog-fluent",
     "license": "MIT",
     "authors": [
         {
@@ -18,6 +18,6 @@
         "fluent/logger": "0.1.0"
     },
     "autoload": {
-        "psr-0": {"Nrk\\Fluent\\Monolog": "src/"}
+        "psr-0": {"Vnay92\\Fluent\\Monolog": "src/"}
     }
 }
